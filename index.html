@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Analyzer - Extract Competitor App Styles</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 UI Analyzer</h1>
+            <p>Extract UI styles, color schemes, and UX patterns from competitor app screens</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-content">
+                        <div class="upload-icon">📱</div>
+                        <h3>Drop your competitor's app screenshots here</h3>
+                        <p>or <button class="browse-btn" id="browseBtn">browse files</button></p>
+                        <small>Select multiple images to compare different screens</small>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                </div>
+                
+                <div class="uploaded-images" id="uploadedImages" style="display: none;">
+                    <div class="images-header">
+                        <h3>Uploaded Screenshots (<span id="imageCount">0</span>)</h3>
+                        <button class="clear-all-btn" id="clearAllBtn">Clear All</button>
+                    </div>
+                    <div class="images-grid" id="imagesGrid"></div>
+                </div>
+            </div>
+
+            <div class="analyze-section">
+                <button class="analyze-btn" id="analyzeBtn" disabled>
+                    <span class="btn-text">Analyze UI & Extract Styles</span>
+                    <div class="loading-spinner" style="display: none;"></div>
+                </button>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h2>Analysis Results</h2>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🎨 Color Palette</h3>
+                        <div id="colorPalette" class="color-palette"></div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔤 Typography</h3>
+                        <div id="typography" class="typography-info"></div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>📐 Layout & Spacing</h3>
+                        <div id="layout" class="layout-info"></div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🧩 UI Components</h3>
+                        <div id="components" class="components-info"></div>
+                    </div>
+                    
+                    <div class="result-card full-width">
+                        <h3>💡 UX Insights</h3>
+                        <div id="uxInsights" class="ux-insights"></div>
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <button class="export-btn" id="exportBtn">
+                        📁 Download Analysis Report
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
