@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - UI Analyzer Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="pricing.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <h2>🎨 UI Analyzer Pro</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="index.html">Home</a>
+                    <a href="pricing.html" class="active">Pricing</a>
+                    <a href="dashboard.html">Dashboard</a>
+                </div>
+            </nav>
+        </header>
+
+        <main class="pricing-main">
+            <div class="pricing-header">
+                <h1>Choose Your Plan</h1>
+                <p>Unlock the full power of AI-driven competitor analysis</p>
+            </div>
+
+            <div class="pricing-toggle">
+                <span class="toggle-label">Monthly</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="pricingToggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">Yearly <span class="save-badge">Save 17%</span></span>
+            </div>
+
+            <div class="pricing-cards">
+                <!-- Free Plan -->
+                <div class="pricing-card free">
+                    <div class="plan-header">
+                        <h3>Free</h3>
+                        <div class="price">
+                            <span class="amount">$0</span>
+                            <span class="period">/forever</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">✓ 3 analyses per month</li>
+                            <li class="included">✓ Basic color extraction</li>
+                            <li class="included">✓ Demo mode only</li>
+                            <li class="not-included">✗ No AI analysis</li>
+                            <li class="not-included">✗ No export features</li>
+                            <li class="not-included">✗ No multiple images</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button current" disabled>Current Plan</button>
+                </div>
+
+                <!-- Yearly Plan -->
+                <div class="pricing-card pro">
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="plan-header">
+                        <h3>Pro Yearly</h3>
+                        <div class="price">
+                            <span class="amount yearly-price">$10</span>
+                            <span class="monthly-price" style="display: none;">$12</span>
+                            <span class="period yearly-period">/year</span>
+                            <span class="period monthly-period" style="display: none;">/month</span>
+                        </div>
+                        <div class="price-note yearly-note">That's just $0.83/month!</div>
+                        <div class="price-note monthly-note" style="display: none;">Billed monthly</div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">✓ Unlimited analyses</li>
+                            <li class="included">✓ Full AI-powered analysis</li>
+                            <li class="included">✓ Multiple image support</li>
+                            <li class="included">✓ Export to JSON/CSS</li>
+                            <li class="included">✓ Color palette extraction</li>
+                            <li class="included">✓ Typography analysis</li>
+                            <li class="included">✓ UX insights & recommendations</li>
+                            <li class="included">✓ Priority support</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button primary" data-plan="yearly" data-price="10">
+                        Start Yearly Plan
+                    </button>
+                </div>
+
+                <!-- Lifetime Plan -->
+                <div class="pricing-card lifetime">
+                    <div class="plan-header">
+                        <h3>Lifetime Access</h3>
+                        <div class="price">
+                            <span class="amount">$20</span>
+                            <span class="period">/lifetime</span>
+                        </div>
+                        <div class="price-note">One-time payment, yours forever!</div>
+                    </div>
+                    <div class="plan-features">
+                        <ul>
+                            <li class="included">✓ Everything in Pro</li>
+                            <li class="included">✓ Lifetime access</li>
+                            <li class="included">✓ All future updates</li>
+                            <li class="included">✓ No recurring fees</li>
+                            <li class="included">✓ Best value!</li>
+                        </ul>
+                    </div>
+                    <button class="plan-button lifetime-btn" data-plan="lifetime" data-price="20">
+                        Get Lifetime Access
+                    </button>
+                </div>
+            </div>
+
+            <div class="features-comparison">
+                <h2>What's Included</h2>
+                <div class="comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Features</th>
+                                <th>Free</th>
+                                <th>Pro</th>
+                                <th>Lifetime</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Monthly Analyses</td>
+                                <td>3</td>
+                                <td>Unlimited</td>
+                                <td>Unlimited</td>
+                            </tr>
+                            <tr>
+                                <td>AI-Powered Analysis</td>
+                                <td>✗</td>
+                                <td>✓</td>
+                                <td>✓</td>
+                            </tr>
+                            <tr>
+                                <td>Multiple Images</td>
+                                <td>✗</td>
+                                <td>✓</td>
+                                <td>✓</td>
+                            </tr>
+                            <tr>
+                                <td>Export Features</td>
+                                <td>✗</td>
+                                <td>✓</td>
+                                <td>✓</td>
+                            </tr>
+                            <tr>
+                                <td>Priority Support</td>
+                                <td>✗</td>
+                                <td>✓</td>
+                                <td>✓</td>
+                            </tr>
+                            <tr>
+                                <td>Future Updates</td>
+                                <td>Basic</td>
+                                <td>All</td>
+                                <td>All (Forever)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h2>Frequently Asked Questions</h2>
+                <div class="faq-items">
+                    <div class="faq-item">
+                        <h3>What's the difference between Yearly and Lifetime?</h3>
+                        <p>Yearly plan gives you full access for 12 months at $10/year. Lifetime gives you permanent access with a one-time $20 payment - no recurring fees ever!</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Do I need my own OpenAI API key?</h3>
+                        <p>With paid plans, we provide the AI analysis service. You don't need your own OpenAI key - just upload images and get instant results!</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Can I upgrade from Yearly to Lifetime?</h3>
+                        <p>Yes! Contact support and we'll apply your yearly payment toward the lifetime plan.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What payment methods do you accept?</h3>
+                        <p>We accept all major credit cards, PayPal, and digital wallets through our secure Stripe payment system.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="payment-form">
+                <h3 id="modalTitle">Complete Your Purchase</h3>
+                <div class="payment-summary">
+                    <div class="plan-info">
+                        <span id="selectedPlan">Pro Yearly</span>
+                        <span id="selectedPrice">$10/year</span>
+                    </div>
+                </div>
+                <div id="stripe-elements">
+                    <!-- Stripe Elements will be inserted here -->
+                </div>
+                <button id="submit-payment" class="payment-submit-btn">
+                    <span id="button-text">Complete Payment</span>
+                    <div id="payment-spinner" class="payment-spinner" style="display: none;"></div>
+                </button>
+                <div id="payment-errors" role="alert"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="pricing.js"></script>
+</body>
+</html>

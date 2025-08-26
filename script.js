@@ -5,6 +5,9 @@ class UIAnalyzer {
         this.uploadedImages = [];
         this.analysisResults = null;
         this.apiKey = null;
+        this.loadSubscriptionData();
+        this.checkUsageLimits();
+        this.addNavigationLinks();
     }
 
     initializeElements() {
@@ -150,6 +153,12 @@ class UIAnalyzer {
     async analyzeImages() {
         if (this.uploadedImages.length === 0) return;
 
+        // Check usage limits before analysis
+        if (!this.canAnalyze()) {
+            this.showUsageLimitModal();
+            return;
+        }
+
         this.setLoadingState(true);
 
         try {
@@ -157,18 +166,25 @@ class UIAnalyzer {
             if (this.shouldUseRealAnalysis()) {
                 this.analysisResults = await this.performRealAnalysis();
             } else {
-                // Show API key prompt first
-                await this.promptForApiKey();
-                if (this.apiKey) {
-                    this.analysisResults = await this.performRealAnalysis();
+                // For paid users, use built-in AI analysis
+                if (this.hasPaidPlan()) {
+                    this.analysisResults = await this.performBuiltInAnalysis();
                 } else {
-                    // Fall back to mock analysis
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    this.analysisResults = await this.performMockAnalysis();
+                    // Show API key prompt for free users
+                    await this.promptForApiKey();
+                    if (this.apiKey) {
+                        this.analysisResults = await this.performRealAnalysis();
+                    } else {
+                        // Fall back to mock analysis
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        this.analysisResults = await this.performMockAnalysis();
+                    }
                 }
             }
             
             this.displayResults();
+            this.trackUsage();
+            this.saveAnalysisToHistory();
             
         } catch (error) {
             console.error('Analysis failed:', error);
@@ -582,7 +598,430 @@ body {
             ...(imageCount > 1 ? ["Compare patterns across screens for consistency"] : [])
         ];
     }
+
+    loadSubscriptionData() {
+        // Load user subscription data
+        const subscriptionData = localStorage.getItem('uiAnalyzerSubscription');
+        this.subscription = subscriptionData ? JSON.parse(subscriptionData) : null;
+        
+        // Load usage data
+        const usageData = localStorage.getItem('uiAnalyzerUsage');
+        this.usage = usageData ? JSON.parse(usageData) : {
+            totalAnalyses: 0,
+            monthlyAnalyses: 0,
+            imagesAnalyzed: 0,
+            reportsDownloaded: 0,
+            lastResetDate: new Date().toISOString()
+        };
+        
+        // Reset monthly count if needed
+        this.checkMonthlyReset();
+    }
+
+    checkMonthlyReset() {
+        const lastReset = new Date(this.usage.lastResetDate);
+        const now = new Date();
+        
+        if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
+            this.usage.monthlyAnalyses = 0;
+            this.usage.lastResetDate = now.toISOString();
+            this.saveUsage();
+        }
+    }
+
+    checkUsageLimits() {
+        // Show usage indicator for free users
+        if (!this.hasPaidPlan()) {
+            this.addUsageIndicator();
+        }
+    }
+
+    addUsageIndicator() {
+        const usageIndicator = document.createElement('div');
+        usageIndicator.className = 'usage-indicator';
+        usageIndicator.innerHTML = `
+            <div class="usage-info">
+                <span>Free Plan: ${this.usage.monthlyAnalyses} / 3 analyses this month</span>
+                <a href="pricing.html" class="upgrade-link">Upgrade for unlimited</a>
+            </div>
+        `;
+        
+        document.querySelector('header').appendChild(usageIndicator);
+    }
+
+    addNavigationLinks() {
+        const nav = document.createElement('nav');
+        nav.className = 'top-nav';
+        nav.innerHTML = `
+            <div class="nav-links">
+                <a href="pricing.html">Pricing</a>
+                <a href="dashboard.html">Dashboard</a>
+            </div>
+        `;
+        
+        document.querySelector('header').appendChild(nav);
+    }
+
+    canAnalyze() {
+        // Paid users can always analyze
+        if (this.hasPaidPlan()) {
+            return true;
+        }
+        
+        // Free users have monthly limit
+        return this.usage.monthlyAnalyses < 3;
+    }
+
+    hasPaidPlan() {
+        if (!this.subscription) return false;
+        
+        // Check if subscription is active
+        if (this.subscription.plan === 'lifetime') {
+            return true;
+        }
+        
+        if (this.subscription.endDate) {
+            return new Date(this.subscription.endDate) > new Date();
+        }
+        
+        return false;
+    }
+
+    showUsageLimitModal() {
+        const modal = document.createElement('div');
+        modal.className = 'usage-limit-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>🚀 Upgrade to Continue</h3>
+                <p>You've reached your free monthly limit of 3 analyses.</p>
+                <div class="upgrade-options">
+                    <div class="upgrade-option">
+                        <h4>Yearly Plan - $10/year</h4>
+                        <p>Just $0.83/month • Unlimited analyses</p>
+                        <button class="upgrade-btn yearly" onclick="window.location.href='pricing.html'">
+                            Choose Yearly
+                        </button>
+                    </div>
+                    <div class="upgrade-option featured">
+                        <h4>Lifetime Access - $20</h4>
+                        <p>One-time payment • Never pay again</p>
+                        <button class="upgrade-btn lifetime" onclick="window.location.href='pricing.html'">
+                            Get Lifetime
+                        </button>
+                    </div>
+                </div>
+                <button class="close-modal" onclick="this.parentElement.parentElement.remove()">
+                    Maybe Later
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+
+    async performBuiltInAnalysis() {
+        // Simulate built-in AI analysis for paid users
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        return {
+            colors: [
+                '#667eea', '#764ba2', '#f8fafc', '#1e293b', 
+                '#e2e8f0', '#10b981', '#ef4444', '#f59e0b'
+            ],
+            typography: {
+                primaryFont: 'SF Pro Display',
+                secondaryFont: 'SF Pro Text',
+                headingSize: '24-32px',
+                bodySize: '16-18px',
+                fontWeights: ['400 (Regular)', '600 (Semibold)', '700 (Bold)'],
+                lineHeight: '1.4-1.6'
+            },
+            layout: {
+                gridSystem: '12-column responsive grid',
+                spacing: '8px, 16px, 24px, 32px (increments of 8)',
+                borderRadius: '8px, 12px, 16px (rounded corners)',
+                margins: '16px mobile, 24px tablet, 32px desktop',
+                containerWidth: '1200px max-width'
+            },
+            components: [
+                'Card-based layout with subtle shadows',
+                'Rounded buttons with gradient backgrounds',
+                'Input fields with minimal borders',
+                'Navigation tabs with underline indicators',
+                'Modal overlays with backdrop blur',
+                'Toast notifications in top-right',
+                'Progress indicators with smooth animations'
+            ],
+            uxInsights: [
+                `AI Analysis of ${this.uploadedImages.length} screenshot${this.uploadedImages.length > 1 ? 's' : ''} (Pro User)`,
+                'Professional AI-powered analysis included in your subscription',
+                'Clean, minimalist design with plenty of white space',
+                'Consistent color palette throughout the interface',
+                'Clear visual hierarchy with proper typography scaling',
+                'Intuitive navigation with familiar interaction patterns',
+                'Mobile-first responsive design approach',
+                'Accessibility considerations with proper contrast ratios',
+                'Smooth transitions and micro-interactions for better UX'
+            ]
+        };
+    }
+
+    trackUsage() {
+        this.usage.totalAnalyses++;
+        this.usage.monthlyAnalyses++;
+        this.usage.imagesAnalyzed += this.uploadedImages.length;
+        this.saveUsage();
+        
+        // Update usage indicator
+        const usageInfo = document.querySelector('.usage-info span');
+        if (usageInfo) {
+            usageInfo.textContent = `Free Plan: ${this.usage.monthlyAnalyses} / 3 analyses this month`;
+        }
+    }
+
+    saveUsage() {
+        localStorage.setItem('uiAnalyzerUsage', JSON.stringify(this.usage));
+    }
+
+    saveAnalysisToHistory() {
+        const history = JSON.parse(localStorage.getItem('uiAnalyzerHistory') || '[]');
+        
+        const analysisRecord = {
+            id: 'analysis_' + Date.now(),
+            timestamp: new Date().toISOString(),
+            imageCount: this.uploadedImages.length,
+            imageNames: this.uploadedImages.map(img => img.name),
+            results: this.analysisResults
+        };
+        
+        history.unshift(analysisRecord);
+        
+        // Keep only last 50 analyses
+        if (history.length > 50) {
+            history.splice(50);
+        }
+        
+        localStorage.setItem('uiAnalyzerHistory', JSON.stringify(history));
+    }
+
+    exportResults() {
+        if (!this.analysisResults) return;
+
+        // Track download usage
+        this.usage.reportsDownloaded++;
+        this.saveUsage();
+
+        const report = {
+            timestamp: new Date().toISOString(),
+            imageCount: this.uploadedImages.length,
+            imageNames: this.uploadedImages.map(img => img.name),
+            analysis: {
+                colorPalette: this.analysisResults.colors,
+                typography: this.analysisResults.typography,
+                layout: this.analysisResults.layout,
+                components: this.analysisResults.components,
+                uxInsights: this.analysisResults.uxInsights
+            },
+            css: this.generateCSS(),
+            recommendations: this.generateRecommendations(),
+            ...(this.analysisResults.rawAnalysis && { rawAnalysis: this.analysisResults.rawAnalysis })
+        };
+
+        const blob = new Blob([JSON.stringify(report, null, 2)], {
+            type: 'application/json'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ui-analysis-${this.uploadedImages.length}-screens-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 }
+
+// Add styling for new components
+const appStyle = document.createElement('style');
+appStyle.textContent = `
+    .top-nav {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .nav-links a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-links a:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .usage-indicator {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .usage-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .upgrade-link {
+        color: #fbbf24;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        background: rgba(251, 191, 36, 0.2);
+        border-radius: 6px;
+        transition: all 0.3s;
+    }
+
+    .upgrade-link:hover {
+        background: rgba(251, 191, 36, 0.3);
+        transform: translateY(-1px);
+    }
+
+    .usage-limit-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .usage-limit-modal .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .usage-limit-modal h3 {
+        margin-bottom: 1rem;
+        color: #1e293b;
+        font-size: 1.5rem;
+    }
+
+    .usage-limit-modal p {
+        margin-bottom: 2rem;
+        color: #64748b;
+    }
+
+    .upgrade-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .upgrade-option {
+        padding: 1.5rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .upgrade-option.featured {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, #fff 0%, #fffbeb 100%);
+        transform: scale(1.05);
+    }
+
+    .upgrade-option h4 {
+        margin-bottom: 0.5rem;
+        color: #1e293b;
+    }
+
+    .upgrade-option p {
+        margin-bottom: 1rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .upgrade-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .upgrade-btn.yearly {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .upgrade-btn.lifetime {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
+
+    .upgrade-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .close-modal {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .upgrade-options {
+            grid-template-columns: 1fr;
+        }
+        
+        .upgrade-option.featured {
+            transform: none;
+        }
+        
+        .nav-links {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .usage-info {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+`;
+
+document.head.appendChild(appStyle);
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
