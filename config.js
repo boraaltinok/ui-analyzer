@@ -6,8 +6,8 @@ const config = {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             return 'http://localhost:3001/api';
         }
-        // Production - UPDATE THIS WITH YOUR DEPLOYED BACKEND URL
-        return 'https://your-backend-url.vercel.app/api';
+        // Production - Real backend URL
+        return 'https://backend-cny4ocfgk-boraaltinoks-projects.vercel.app/api';
     })(),
     
     // Frontend URL
