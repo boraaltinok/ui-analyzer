@@ -7,7 +7,7 @@ const config = {
             return 'http://localhost:3001/api';
         }
         // Production - Real backend URL
-        return 'https://backend-cny4ocfgk-boraaltinoks-projects.vercel.app/api';
+        return 'https://backend-clbh8nmln-boraaltinoks-projects.vercel.app/api';
     })(),
     
     // Frontend URL
