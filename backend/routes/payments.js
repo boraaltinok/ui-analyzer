@@ -17,25 +17,50 @@ const iyzipay = new Iyzipay({
         : 'https://sandbox-api.iyzipay.com'
 });
 
-// Plan prices
+// Plan prices - Global Multi-Currency Support
 const PLANS = {
     yearly: {
-        price: 10,
-        priceTRY: 300, // Approximate TRY price
+        prices: {
+            USD: 10,
+            EUR: 9,
+            GBP: 8,
+            TRY: 300,
+            RUB: 900,
+            CHF: 9,
+            NOK: 100
+        },
         duration: 365 * 24 * 60 * 60 * 1000 // 1 year in milliseconds
     },
     lifetime: {
-        price: 20,
-        priceTRY: 600, // Approximate TRY price
+        prices: {
+            USD: 20,
+            EUR: 18,
+            GBP: 16,
+            TRY: 600,
+            RUB: 1800,
+            CHF: 18,
+            NOK: 200
+        },
         duration: null // No expiration
     }
+};
+
+// Currency configuration
+const SUPPORTED_CURRENCIES = {
+    USD: { symbol: '$', name: 'US Dollar' },
+    EUR: { symbol: '€', name: 'Euro' },
+    GBP: { symbol: '£', name: 'British Pound' },
+    TRY: { symbol: '₺', name: 'Turkish Lira' },
+    RUB: { symbol: '₽', name: 'Russian Ruble' },
+    CHF: { symbol: 'CHF', name: 'Swiss Franc' },
+    NOK: { symbol: 'kr', name: 'Norwegian Krone' }
 };
 
 // Create payment
 router.post('/create-payment', [
     authenticateToken,
     body('plan').isIn(['yearly', 'lifetime']),
-    body('currency').optional().isIn(['USD', 'TRY']),
+    body('currency').optional().isIn(['USD', 'EUR', 'GBP', 'TRY', 'RUB', 'CHF', 'NOK']),
     body('customerInfo.name').notEmpty().trim(),
     body('customerInfo.phone').optional().matches(/^\+?[1-9]\d{1,14}$/),
     body('customerInfo.vatNumber').optional()
@@ -63,8 +88,15 @@ router.post('/create-payment', [
             });
         }
 
+        // Validate currency
+        if (!SUPPORTED_CURRENCIES[currency]) {
+            return res.status(400).json({ 
+                error: 'Unsupported currency' 
+            });
+        }
+
         const planDetails = PLANS[plan];
-        const amount = currency === 'USD' ? planDetails.price : planDetails.priceTRY;
+        const amount = planDetails.prices[currency];
         const conversationId = uuidv4();
 
         // Create iyzico payment request
@@ -73,7 +105,7 @@ router.post('/create-payment', [
             conversationId: conversationId,
             price: amount.toString(),
             paidPrice: amount.toString(),
-            currency: currency === 'USD' ? Iyzipay.CURRENCY.USD : Iyzipay.CURRENCY.TRY,
+            currency: Iyzipay.CURRENCY[currency],
             basketId: `UI_${user._id}_${Date.now()}`,
             paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
             callbackUrl: `${process.env.FRONTEND_URL}/payment-success?plan=${plan}`,
@@ -117,8 +149,8 @@ router.post('/create-payment', [
             }]
         };
 
-        // Add VAT info if Turkish VAT number provided
-        if (customerInfo.vatNumber && currency === 'TRY') {
+        // Add VAT info if VAT number provided
+        if (customerInfo.vatNumber) {
             request.buyer.vatNumber = customerInfo.vatNumber;
         }
 
@@ -316,6 +348,63 @@ router.post('/webhook', express.raw({type: 'application/json'}), async (req, res
     } catch (error) {
         console.error('Webhook error:', error);
         res.status(400).json({ error: 'Webhook processing failed' });
+    }
+});
+
+// Get supported currencies and plans
+router.get('/plans', (req, res) => {
+    try {
+        const plansWithCurrencies = Object.keys(PLANS).map(planKey => {
+            const plan = PLANS[planKey];
+            return {
+                id: planKey,
+                name: planKey.charAt(0).toUpperCase() + planKey.slice(1),
+                duration: plan.duration,
+                prices: plan.prices,
+                supportedCurrencies: Object.keys(plan.prices)
+            };
+        });
+
+        res.json({
+            plans: plansWithCurrencies,
+            supportedCurrencies: SUPPORTED_CURRENCIES,
+            defaultCurrency: 'TRY'
+        });
+    } catch (error) {
+        console.error('Get plans error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Currency detection helper endpoint
+router.get('/detect-currency', (req, res) => {
+    try {
+        // Simple country to currency mapping
+        const countryToCurrency = {
+            'TR': 'TRY',
+            'US': 'USD',
+            'GB': 'GBP',
+            'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR',
+            'RU': 'RUB',
+            'CH': 'CHF',
+            'NO': 'NOK'
+        };
+
+        // Try to detect from IP or use header
+        const country = req.headers['cf-ipcountry'] || 
+                       req.headers['x-country-code'] || 
+                       'TR'; // Default to Turkey
+        
+        const detectedCurrency = countryToCurrency[country] || 'USD';
+
+        res.json({
+            detectedCurrency,
+            detectedCountry: country,
+            supportedCurrencies: Object.keys(SUPPORTED_CURRENCIES)
+        });
+    } catch (error) {
+        console.error('Currency detection error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
